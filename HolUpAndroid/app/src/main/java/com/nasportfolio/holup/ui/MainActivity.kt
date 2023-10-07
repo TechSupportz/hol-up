@@ -1,12 +1,6 @@
 package com.nasportfolio.holup.ui
 
-import android.app.AppOpsManager
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Process
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -29,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,62 +33,16 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.firestore.FirebaseFirestore
+import com.nasportfolio.holup.data.dao.BlockedAppDaoImpl
 import com.nasportfolio.holup.getAllApplications
-import com.nasportfolio.holup.service.BlockerService
+import com.nasportfolio.holup.startBlockerService
 import com.nasportfolio.holup.ui.theme.HolUpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private fun checkUsageStatsPermission(): Boolean {
-        val appOpsManager = getSystemService(APP_OPS_SERVICE) as AppOpsManager
-        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            appOpsManager.unsafeCheckOpNoThrow(
-                "android:get_usage_stats",
-                Process.myUid(),
-                packageName
-            )
-        } else {
-            appOpsManager.checkOpNoThrow(
-                "android:get_usage_stats",
-                Process.myUid(),
-                packageName
-            )
-        }
-        return mode == AppOpsManager.MODE_ALLOWED
-    }
-
-    private fun checkDrawOverOtherAppsPermission(): Boolean {
-        return Settings.canDrawOverlays(this)
-    }
-
-    private fun startService() {
-        if (checkUsageStatsPermission()) {
-            if (checkDrawOverOtherAppsPermission()) {
-                ContextCompat.startForegroundService(
-                    this,
-                    Intent(this, BlockerService::class.java)
-                )
-            } else {
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
-                ).apply {
-                    startActivity(this)
-                }
-            }
-        } else {
-            Intent(
-                Settings.ACTION_USAGE_ACCESS_SETTINGS,
-                Uri.parse("package:$packageName")
-            ).apply {
-                startActivity(this)
-            }
-        }
-    }
-
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +52,14 @@ class MainActivity : ComponentActivity() {
             val mainViewModel = viewModel<MainViewModel>()
             val blockedApps by mainViewModel.blockedApps.collectAsState()
             val behavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+            LaunchedEffect(true) {
+                BlockedAppDaoImpl(
+                    FirebaseFirestore.getInstance()
+                ).getAllBlockedApps().collect {
+                    println(it)
+                }
+            }
 
             HolUpTheme {
                 Surface(
@@ -181,6 +138,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        startService()
+        startBlockerService()
     }
 }
