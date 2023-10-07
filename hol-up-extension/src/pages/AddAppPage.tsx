@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 
-const SettingsPage = () => {
+const AddAppPage = () => {
     const navigate = useNavigate()
 
     const form = useForm<SettingsForm>({
@@ -134,4 +134,4 @@ const SettingsPage = () => {
     )
 }
 
-export default SettingsPage
+export default AddAppPage

@@ -5,7 +5,7 @@ import { Toaster } from "./components/ui/toaster"
 import BlockedPage from "./pages/BlockedPage"
 import CooldownPage from "./pages/CooldownPage"
 import PopUpPage from "./pages/PopUpPage"
-import SettingsPage from "./pages/SettingsPage"
+import AddAppPage from "./pages/AddAppPage"
 
 function App() {
     const [count, setCount] = useState(0)
@@ -15,7 +15,7 @@ function App() {
             <HashRouter>
                 <Routes>
                     <Route path="/*" element={<PopUpPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/add" element={<AddAppPage />} />
                     <Route path="/blocked" element={<BlockedPage />} />
                     <Route path="/cooldown" element={<CooldownPage />} />
                 </Routes>
