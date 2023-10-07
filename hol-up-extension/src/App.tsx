@@ -1,22 +1,27 @@
 import { useState } from "react"
-import { MemoryRouter, Routes, Route, HashRouter } from "react-router-dom"
-import { Button } from "./components/ui/button"
+import { HashRouter, Route, Routes } from "react-router-dom"
 
-import SettingsPage from "./pages/SettingsPage"
-import CooldownPage from "./pages/CooldownPage"
+import { Toaster } from "./components/ui/toaster"
 import BlockedPage from "./pages/BlockedPage"
+import CooldownPage from "./pages/CooldownPage"
+import PopUpPage from "./pages/PopUpPage"
+import AddAppPage from "./pages/AddAppPage"
 
 function App() {
     const [count, setCount] = useState(0)
 
     return (
-        <HashRouter>
-            <Routes>
-                <Route path="/*" element={<SettingsPage />} />
-                <Route path="/blocked" element={<BlockedPage />} />
-                <Route path="/cooldown" element={<CooldownPage />} />
-            </Routes>
-        </HashRouter>
+        <>
+            <HashRouter>
+                <Routes>
+                    <Route path="/*" element={<PopUpPage />} />
+                    <Route path="/add" element={<AddAppPage />} />
+                    <Route path="/blocked" element={<BlockedPage />} />
+                    <Route path="/cooldown" element={<CooldownPage />} />
+                </Routes>
+            </HashRouter>
+            <Toaster />
+        </>
     )
 }
 
