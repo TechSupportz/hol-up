@@ -1,13 +1,21 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+* {
+    min-width: 30rem;
+    min-height: 100%;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+#crx-root {
+    position: fixed;
+    top: 3rem;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+#crx-root button {
+    background-color: rgb(239, 239, 239);
+    border-color: rgb(118, 118, 118);
+    border-image: initial;
+    border-style: outset;
+    border-width: 2px;
+    margin: 0;
+    padding: 1px 6px;
 }
