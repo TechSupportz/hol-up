@@ -1,44 +1,69 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
-import { SettingsForm, settingsFormSchema } from "@/types/SettingsForm"
+import { db } from "@/firebase"
+import { ManageAppForm, ManageAppFormSchema } from "@/types/ManageAppForm"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { addDoc, collection } from "firebase/firestore"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 
 const AddAppPage = () => {
     const navigate = useNavigate()
 
-    const form = useForm<SettingsForm>({
+    const form = useForm<ManageAppForm>({
         defaultValues: {
             name: "",
             timeAllowed: 60,
             cooldown: 10,
         },
-        resolver: zodResolver(settingsFormSchema),
+        resolver: zodResolver(ManageAppFormSchema),
         mode: "onTouched",
     })
 
-    // TODO - Post data to Firestore
-    const onSubmit = (data: SettingsForm) => {
+    const onSubmit = async (data: ManageAppForm) => {
         console.log(data)
-        navigate("/")
-        toast({
-            title: `${data.name} has been blocked!`,
-            description: `You can now only use ${data.name} for ${data.timeAllowed} minutes with a ${data.cooldown} second cooldown timer`,
-            className: "bg-purple-100 border-purple-300 border-2 shadow-purple-400/30",
-            duration: 2500,
-        })
+
+        try {
+            await addDoc(collection(db, "blockedApps"), {
+                userId: "007",
+                name: data.name,
+                cooldown: data.cooldown,
+                timeAllowed: data.timeAllowed,
+                timeUsed: 0,
+            })
+
+            navigate("/")
+            toast({
+                title: `${data.name} has been blocked!`,
+                description: `You can now only use ${data.name} for ${data.timeAllowed} minutes with a ${data.cooldown} second cooldown timer`,
+                className: "bg-purple-100 border-purple-300 border-2 shadow-purple-400/30",
+                duration: 2500,
+            })
+        } catch (e) {
+            console.error(e)
+            toast({
+                title: `Oops! Something went wrong`,
+                description: (
+                    <>
+                        We couldn't block {data.name} for some reason <br />
+                        <sub>(Pls don't use this as an excuse to procrastinate)</sub>
+                    </>
+                ),
+                className: "bg-red-100 border-red-300 border-2 shadow-red-400/30",
+                duration: 2500,
+            })
+        }
     }
 
     const onError = (errors: any) => {
