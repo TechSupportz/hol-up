@@ -4,7 +4,7 @@ import logo from "./logo.svg"
 import "./App.css"
 import { Button } from "./components/ui/button"
 
-import SettingsPage from "./pages/SettingsPage"
+import PopUpPage from "./pages/PopUpPage"
 import CooldownPage from "./pages/CooldownPage"
 import BlockedPage from "./pages/BlockedPage"
 
@@ -15,7 +15,7 @@ function App() {
         <div className="App">
             <HashRouter>
                 <Routes>
-                    <Route path="/*" element={<SettingsPage />} />
+                    <Route path="/*" element={<PopUpPage />} />
                     <Route path="/blocked" element={<BlockedPage />} />
                     <Route path="/cooldown" element={<CooldownPage />} />
                 </Routes>
