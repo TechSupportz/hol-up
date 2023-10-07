@@ -4,6 +4,7 @@ import { HashRouter, Route, Routes } from "react-router-dom"
 import { Toaster } from "./components/ui/toaster"
 import BlockedPage from "./pages/BlockedPage"
 import CooldownPage from "./pages/CooldownPage"
+import PopUpPage from "./pages/PopUpPage"
 import SettingsPage from "./pages/SettingsPage"
 
 function App() {
@@ -13,7 +14,7 @@ function App() {
         <>
             <HashRouter>
                 <Routes>
-                    <Route path="/" element={<BlockedPage />} />
+                    <Route path="/*" element={<PopUpPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/blocked" element={<BlockedPage />} />
                     <Route path="/cooldown" element={<CooldownPage />} />
