@@ -35,6 +35,7 @@ export function PopUpPage() {
     const filteredItems = HolUp.filter((item) =>
         item.name.toLowerCase().includes(filterText.toLowerCase()),
     )
+
     return (
         <div className="w-full p-4">
             <Input
@@ -57,10 +58,17 @@ export function PopUpPage() {
                     <TableBody>
                         {filteredItems.map((name) => (
                             <TableRow key={name.name}>
-                                <TableCell className="font-medium">{name.name}</TableCell>
+                                <TableCell className="font-medium">
+                                    <img
+                                        className="w-8 h-8"
+                                        src={`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.${name.name}.com/&size=256`}></img>
+                                </TableCell>
                                 <TableCell>{name.website}</TableCell>
                                 <TableCell>{name.timeLeft} min</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell
+                                    className="text-right"
+                                    // onClick={openScreen}
+                                >
                                     <GrEdit />
                                 </TableCell>
                             </TableRow>
