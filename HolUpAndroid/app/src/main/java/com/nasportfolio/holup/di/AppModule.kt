@@ -2,8 +2,8 @@ package com.nasportfolio.holup.di
 
 import android.content.Context
 import androidx.room.Room
-import com.nasportfolio.holup.HUDatabase
-import com.nasportfolio.holup.dao.BlockedAppDao
+import com.nasportfolio.holup.data.HUDatabase
+import com.nasportfolio.holup.data.dao.BlockedAppDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

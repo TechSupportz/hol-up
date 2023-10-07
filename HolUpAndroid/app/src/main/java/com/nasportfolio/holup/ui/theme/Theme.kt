@@ -56,6 +56,7 @@ fun HolUpTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            if (view.context !is Activity) return@SideEffect
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme

@@ -1,14 +1,17 @@
-package com.nasportfolio.holup
+package com.nasportfolio.holup.ui
 
+import android.app.AppOpsManager
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.provider.CalendarContract.Colors
+import android.os.Process
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,23 +34,72 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nasportfolio.holup.getAllApplications
+import com.nasportfolio.holup.service.BlockerService
 import com.nasportfolio.holup.ui.theme.HolUpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private fun checkUsageStatsPermission(): Boolean {
+        val appOpsManager = getSystemService(APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOpsManager.unsafeCheckOpNoThrow(
+                "android:get_usage_stats",
+                Process.myUid(),
+                packageName
+            )
+        } else {
+            appOpsManager.checkOpNoThrow(
+                "android:get_usage_stats",
+                Process.myUid(),
+                packageName
+            )
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun checkDrawOverOtherAppsPermission(): Boolean {
+        return Settings.canDrawOverlays(this)
+    }
+
+    private fun startService() {
+        if (checkUsageStatsPermission()) {
+            if (checkDrawOverOtherAppsPermission()) {
+                ContextCompat.startForegroundService(
+                    this,
+                    Intent(this, BlockerService::class.java)
+                )
+            } else {
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                ).apply {
+                    startActivity(this)
+                }
+            }
+        } else {
+            Intent(
+                Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                Uri.parse("package:$packageName")
+            ).apply {
+                startActivity(this)
+            }
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onNewIntent(intent)
+        val list = packageManager.getAllApplications()
         setContent {
-            val list = packageManager.getAllApplications()
             val mainViewModel = viewModel<MainViewModel>()
             val blockedApps by mainViewModel.blockedApps.collectAsState()
             val behavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -75,26 +127,19 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(paddingValues)
                         ) {
-                            items(list) {
-                                val packageName = it.activityInfo.packageName
-                                val name = it.activityInfo
-                                    .loadLabel(packageManager)
-                                    .toString()
-                                val bitmap = it.activityInfo
-                                    .loadIcon(packageManager)
-                                    .toBitmap()
+                            items(list) { appInfo ->
                                 val isBlocked = blockedApps
                                     .map { it.packageName }
-                                    .contains(packageName)
+                                    .contains(appInfo.packageName)
 
                                 val onCheck = onCheck@{
                                     if (isBlocked) {
-                                        mainViewModel.deleteApp(packageName)
+                                        mainViewModel.deleteApp(appInfo.packageName)
                                         return@onCheck
                                     }
                                     mainViewModel.addBlockApp(
-                                        packageName = packageName,
-                                        name = name,
+                                        packageName = appInfo.packageName,
+                                        name = appInfo.name,
                                     )
                                 }
 
@@ -103,22 +148,25 @@ class MainActivity : ComponentActivity() {
                                         .clickable(onClick = onCheck)
                                         .fillMaxWidth()
                                         .padding(16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Checkbox(checked = isBlocked, onCheckedChange = { onCheck() })
-                                    Image(
-                                        bitmap = bitmap.asImageBitmap(),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .width(60.dp)
-                                            .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(percent = 50)),
-                                    )
-                                    Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Image(
+                                            bitmap = appInfo.icon.asImageBitmap(),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .width(60.dp)
+                                                .aspectRatio(1f)
+                                                .clip(RoundedCornerShape(percent = 50)),
+                                        )
                                         Text(
-                                            text = name,
-                                            fontSize = 24.sp
+                                            text = appInfo.name,
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
@@ -128,5 +176,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startService()
     }
 }

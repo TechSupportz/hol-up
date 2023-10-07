@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HolUp</string>
+    <string name="title_activity_take_abreak">TakeABreakActivity</string>
 </resources>

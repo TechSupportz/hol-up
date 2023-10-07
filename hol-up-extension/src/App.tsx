@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { HashRouter, Route, Routes } from "react-router-dom"
 
+import { Toaster } from "./components/ui/toaster"
 import BlockedPage from "./pages/BlockedPage"
 import CooldownPage from "./pages/CooldownPage"
 import SettingsPage from "./pages/SettingsPage"
-import { Toaster } from "./components/ui/toaster"
 
 function App() {
     const [count, setCount] = useState(0)

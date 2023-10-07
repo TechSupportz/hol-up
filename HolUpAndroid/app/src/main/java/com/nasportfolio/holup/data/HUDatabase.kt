@@ -1,9 +1,9 @@
-package com.nasportfolio.holup
+package com.nasportfolio.holup.data
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.nasportfolio.holup.dao.BlockedAppDao
-import com.nasportfolio.holup.models.BlockedApp
+import com.nasportfolio.holup.data.dao.BlockedAppDao
+import com.nasportfolio.holup.data.models.BlockedApp
 
 @Database(
     entities = [BlockedApp::class],
