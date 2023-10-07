@@ -1,18 +1,15 @@
 import { useState } from "react"
-import { MemoryRouter, Routes, Route, HashRouter } from "react-router-dom"
-import logo from "./logo.svg"
-import "./App.css"
-import { Button } from "./components/ui/button"
+import { HashRouter, Route, Routes } from "react-router-dom"
 
-import SettingsPage from "./pages/SettingsPage"
-import CooldownPage from "./pages/CooldownPage"
 import BlockedPage from "./pages/BlockedPage"
+import CooldownPage from "./pages/CooldownPage"
+import SettingsPage from "./pages/SettingsPage"
 
 function App() {
-    const [count, setCount] = useState(0)
+    console.log("App")
 
     return (
-        <div className="App">
+        <>
             <HashRouter>
                 <Routes>
                     <Route path="/*" element={<SettingsPage />} />
@@ -20,7 +17,7 @@ function App() {
                     <Route path="/cooldown" element={<CooldownPage />} />
                 </Routes>
             </HashRouter>
-        </div>
+        </>
     )
 }
 
