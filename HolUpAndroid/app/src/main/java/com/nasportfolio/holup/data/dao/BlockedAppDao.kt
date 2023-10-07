@@ -1,10 +1,10 @@
-package com.nasportfolio.holup.dao
+package com.nasportfolio.holup.data.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
-import com.nasportfolio.holup.models.BlockedApp
+import com.nasportfolio.holup.data.models.BlockedApp
 import kotlinx.coroutines.flow.Flow
 
 @Dao
