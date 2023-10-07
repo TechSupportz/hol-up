@@ -1,7 +1,5 @@
 import { useState } from "react"
 import { MemoryRouter, Routes, Route, HashRouter } from "react-router-dom"
-import logo from "./logo.svg"
-import "./App.css"
 import { Button } from "./components/ui/button"
 
 import SettingsPage from "./pages/SettingsPage"
