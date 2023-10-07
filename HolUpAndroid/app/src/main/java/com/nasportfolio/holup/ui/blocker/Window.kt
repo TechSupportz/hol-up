@@ -4,14 +4,6 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.WindowManager
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -24,7 +16,6 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.nasportfolio.holup.ui.theme.HolUpTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -74,6 +65,12 @@ class Window @Inject constructor(
         layoutParams = this@Window.layoutParams
     }
 
+    private var listener: WindowContentListener? = null
+
+    fun setWindowContentListener(listener: WindowContentListener) {
+        this.listener = listener
+    }
+
     fun show() {
         try {
             if (isShown) return
@@ -82,19 +79,11 @@ class Window @Inject constructor(
                 setViewTreeViewModelStoreOwner(this@Window)
                 setViewTreeSavedStateRegistryOwner(this@Window)
                 setContent {
-                    HolUpTheme {
-                        Surface(
-                            modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.background
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = "Hello World")
-                            }
+                    WindowContent(
+                        hide = {
+                            listener?.hide()
                         }
-                    }
+                    )
                 }
             }.also {
                 windowManager.addView(it, layoutParams)
@@ -124,4 +113,7 @@ class Window @Inject constructor(
 
     fun isShown() = isShown
 
+    interface WindowContentListener {
+        fun hide()
+    }
 }

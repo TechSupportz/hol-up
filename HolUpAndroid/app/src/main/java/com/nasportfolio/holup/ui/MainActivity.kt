@@ -154,13 +154,14 @@ class MainActivity : ComponentActivity() {
                                     Checkbox(checked = isBlocked, onCheckedChange = { onCheck() })
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Image(
                                             bitmap = appInfo.icon.asImageBitmap(),
                                             contentDescription = null,
                                             modifier = Modifier
-                                                .width(60.dp)
+                                                .width(50.dp)
                                                 .aspectRatio(1f)
                                                 .clip(RoundedCornerShape(percent = 50)),
                                         )

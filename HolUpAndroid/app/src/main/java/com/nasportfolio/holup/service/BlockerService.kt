@@ -49,6 +49,12 @@ class BlockerService : Service() {
     override fun onCreate() {
         super.onCreate()
         window.onCreate()
+        window.setWindowContentListener(object : Window.WindowContentListener {
+            override fun hide() {
+                window.hide()
+
+            }
+        })
         homeButtonWatcher.setOnHomePressedListener(object :
             HomeButtonWatcher.OnHomePressedListener {
             override fun onHomePressed() {
@@ -84,12 +90,10 @@ class BlockerService : Service() {
                 if (blockedApp.packageName != event.packageName) return@forEach
                 withContext(Dispatchers.Main) {
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                        println("SHOWING")
                         window.show()
                         return@withContext
                     }
                     if (event.eventType == UsageEvents.Event.ACTIVITY_STOPPED) {
-                        println("HIDING")
                         window.hide()
                         return@withContext
                     }
