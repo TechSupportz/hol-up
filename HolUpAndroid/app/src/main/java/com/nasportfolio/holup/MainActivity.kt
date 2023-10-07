@@ -1,11 +1,14 @@
 package com.nasportfolio.holup
 
+import android.app.AppOpsManager
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.provider.CalendarContract.Colors
+import android.os.Process
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,18 +34,38 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nasportfolio.holup.service.BlockerService
 import com.nasportfolio.holup.ui.theme.HolUpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private fun checkUsageStatsPermission(): Boolean {
+        val appOpsManager = getSystemService(APP_OPS_SERVICE) as AppOpsManager
+        // `AppOpsManager.checkOpNoThrow` is deprecated from Android Q
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOpsManager.unsafeCheckOpNoThrow(
+                "android:get_usage_stats",
+                Process.myUid(),
+                packageName
+            )
+        } else {
+            appOpsManager.checkOpNoThrow(
+                "android:get_usage_stats",
+                Process.myUid(),
+                packageName
+            )
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +74,16 @@ class MainActivity : ComponentActivity() {
             val mainViewModel = viewModel<MainViewModel>()
             val blockedApps by mainViewModel.blockedApps.collectAsState()
             val behavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+            if (checkUsageStatsPermission()) {
+                ContextCompat.startForegroundService(this, Intent(this, BlockerService::class.java))
+            } else {
+                Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                    startActivityForResult(this, 100)
+                }
+            }
+
+            onNewIntent(intent)
 
             HolUpTheme {
                 Surface(
@@ -118,7 +151,7 @@ class MainActivity : ComponentActivity() {
                                     Column {
                                         Text(
                                             text = name,
-                                            fontSize = 24.sp
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
@@ -128,5 +161,27 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val packageName = intent?.getStringExtra("package")
+        packageName?.let {
+            Intent(this, TakeABreakActivity::class.java).also { intent ->
+                intent.putExtra("package", packageName)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != 100) return
+        if (!checkUsageStatsPermission()) return
+        ContextCompat.startForegroundService(
+            this,
+            Intent(this, BlockerService::class.java)
+        )
     }
 }
