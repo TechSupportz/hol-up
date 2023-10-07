@@ -10,15 +10,13 @@ function App() {
     const [count, setCount] = useState(0)
 
     return (
-        <div className="App">
-            <HashRouter>
-                <Routes>
-                    <Route path="/*" element={<SettingsPage />} />
-                    <Route path="/blocked" element={<BlockedPage />} />
-                    <Route path="/cooldown" element={<CooldownPage />} />
-                </Routes>
-            </HashRouter>
-        </div>
+        <HashRouter>
+            <Routes>
+                <Route path="/*" element={<SettingsPage />} />
+                <Route path="/blocked" element={<BlockedPage />} />
+                <Route path="/cooldown" element={<CooldownPage />} />
+            </Routes>
+        </HashRouter>
     )
 }
 
