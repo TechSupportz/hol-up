@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui/input"
 import {
     Table,
     TableBody,
@@ -7,48 +8,67 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { GrEdit } from "react-icons/gr"
 
-const PopUpPage = () => {
-    const navigator = useNavigate()
+export function PopUpPage() {
+    const HolUp = [
+        {
+            name: "Facebook",
+            website: "Facebook",
+            timeLeft: 30,
+        },
+        {
+            name: "Instagram",
+            website: "Instagram",
+            timeLeft: 40,
+        },
+    ]
+    const [filterText, setFilterText] = useState<string>("")
 
-    const [items, setItems] = useState([
-        { name: "Facebook", time: 30, used: 10 },
-        { name: "Instagram", time: 40, used: 20 },
-    ])
-    const [filterText, setFilterText] = useState("")
-
-    // Function to handle category filter change
-    const handleFilterTextChange = (event: { target: { value: React.SetStateAction<string> } }) => {
+    // Function to handle text input change
+    const handleFilterTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterText(event.target.value)
     }
 
     // Filter items based on the typed text
-    const filteredItems = items.filter((item) =>
+    const filteredItems = HolUp.filter((item) =>
         item.name.toLowerCase().includes(filterText.toLowerCase()),
     )
-
     return (
-        <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[100px]">Invoice</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                <TableRow>
-                    <TableCell className="font-medium">INV001</TableCell>
-                    <TableCell>Paid</TableCell>
-                    <TableCell>Credit Card</TableCell>
-                    <TableCell className="text-right">$250.00</TableCell>
-                </TableRow>
-            </TableBody>
-        </Table>
+        <div className="w-full p-4">
+            <Input
+                placeholder="Email"
+                type="text"
+                value={filterText}
+                onChange={handleFilterTextChange}
+            />
+            <div className="rounded-md border mt-4">
+                <Table>
+                    <TableCaption>A list of your Blocked websites.</TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="text-center">Logo</TableHead>
+                            <TableHead className="text-center">website</TableHead>
+                            <TableHead className="text-center">Time Left</TableHead>
+                            <TableHead className="text-center">Edit</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredItems.map((name) => (
+                            <TableRow key={name.name}>
+                                <TableCell className="font-medium">{name.name}</TableCell>
+                                <TableCell>{name.website}</TableCell>
+                                <TableCell>{name.timeLeft} min</TableCell>
+                                <TableCell className="text-right">
+                                    <GrEdit />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
     )
 }
 
