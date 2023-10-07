@@ -1,4 +1,4 @@
-package com.nasportfolio.holup.models
+package com.nasportfolio.holup.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

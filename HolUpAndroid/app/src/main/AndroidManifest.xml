@@ -24,12 +24,12 @@
         android:theme="@style/Theme.HolUp"
         tools:targetApi="31">
         <activity
-            android:name=".TakeABreakActivity"
+            android:name=".ui.activities.TakeABreakActivity"
             android:exported="true"
             android:label="@string/title_activity_take_abreak"
             android:theme="@style/Theme.HolUp" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.HolUp">

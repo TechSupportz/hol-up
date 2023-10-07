@@ -1,7 +1,8 @@
-package com.nasportfolio.holup
+package com.nasportfolio.holup.ui
 
 import android.app.AppOpsManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -11,7 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,8 +39,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nasportfolio.holup.getAllApplications
 import com.nasportfolio.holup.service.BlockerService
 import com.nasportfolio.holup.ui.theme.HolUpTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,7 +49,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private fun checkUsageStatsPermission(): Boolean {
         val appOpsManager = getSystemService(APP_OPS_SERVICE) as AppOpsManager
-        // `AppOpsManager.checkOpNoThrow` is deprecated from Android Q
         val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             appOpsManager.unsafeCheckOpNoThrow(
                 "android:get_usage_stats",
@@ -66,24 +65,44 @@ class MainActivity : ComponentActivity() {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
+    private fun checkDrawOverOtherAppsPermission(): Boolean {
+        return Settings.canDrawOverlays(this)
+    }
+
+    private fun startService() {
+        if (checkUsageStatsPermission()) {
+            if (checkDrawOverOtherAppsPermission()) {
+                ContextCompat.startForegroundService(
+                    this,
+                    Intent(this, BlockerService::class.java)
+                )
+            } else {
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                ).apply {
+                    startActivity(this)
+                }
+            }
+        } else {
+            Intent(
+                Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                Uri.parse("package:$packageName")
+            ).apply {
+                startActivity(this)
+            }
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onNewIntent(intent)
+        val list = packageManager.getAllApplications()
         setContent {
-            val list = packageManager.getAllApplications()
             val mainViewModel = viewModel<MainViewModel>()
             val blockedApps by mainViewModel.blockedApps.collectAsState()
             val behavior = TopAppBarDefaults.pinnedScrollBehavior()
-
-            if (checkUsageStatsPermission()) {
-                ContextCompat.startForegroundService(this, Intent(this, BlockerService::class.java))
-            } else {
-                Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
-                    startActivityForResult(this, 100)
-                }
-            }
-
-            onNewIntent(intent)
 
             HolUpTheme {
                 Surface(
@@ -108,26 +127,19 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(paddingValues)
                         ) {
-                            items(list) {
-                                val packageName = it.activityInfo.packageName
-                                val name = it.activityInfo
-                                    .loadLabel(packageManager)
-                                    .toString()
-                                val bitmap = it.activityInfo
-                                    .loadIcon(packageManager)
-                                    .toBitmap()
+                            items(list) { appInfo ->
                                 val isBlocked = blockedApps
                                     .map { it.packageName }
-                                    .contains(packageName)
+                                    .contains(appInfo.packageName)
 
                                 val onCheck = onCheck@{
                                     if (isBlocked) {
-                                        mainViewModel.deleteApp(packageName)
+                                        mainViewModel.deleteApp(appInfo.packageName)
                                         return@onCheck
                                     }
                                     mainViewModel.addBlockApp(
-                                        packageName = packageName,
-                                        name = name,
+                                        packageName = appInfo.packageName,
+                                        name = appInfo.name,
                                     )
                                 }
 
@@ -136,21 +148,24 @@ class MainActivity : ComponentActivity() {
                                         .clickable(onClick = onCheck)
                                         .fillMaxWidth()
                                         .padding(16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Checkbox(checked = isBlocked, onCheckedChange = { onCheck() })
-                                    Image(
-                                        bitmap = bitmap.asImageBitmap(),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .width(60.dp)
-                                            .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(percent = 50)),
-                                    )
-                                    Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Image(
+                                            bitmap = appInfo.icon.asImageBitmap(),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .width(60.dp)
+                                                .aspectRatio(1f)
+                                                .clip(RoundedCornerShape(percent = 50)),
+                                        )
                                         Text(
-                                            text = name,
+                                            text = appInfo.name,
                                             fontSize = 18.sp
                                         )
                                     }
@@ -163,25 +178,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        val packageName = intent?.getStringExtra("package")
-        packageName?.let {
-            Intent(this, TakeABreakActivity::class.java).also { intent ->
-                intent.putExtra("package", packageName)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != 100) return
-        if (!checkUsageStatsPermission()) return
-        ContextCompat.startForegroundService(
-            this,
-            Intent(this, BlockerService::class.java)
-        )
+    override fun onResume() {
+        super.onResume()
+        startService()
     }
 }

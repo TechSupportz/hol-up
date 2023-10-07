@@ -1,10 +1,10 @@
-package com.nasportfolio.holup
+package com.nasportfolio.holup.ui
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nasportfolio.holup.dao.BlockedAppDao
-import com.nasportfolio.holup.models.BlockedApp
+import com.nasportfolio.holup.data.dao.BlockedAppDao
+import com.nasportfolio.holup.data.models.BlockedApp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
