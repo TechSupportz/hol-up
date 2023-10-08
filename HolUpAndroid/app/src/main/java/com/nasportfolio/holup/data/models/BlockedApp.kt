@@ -4,20 +4,18 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.DocumentId
 
-@Entity
 data class BlockedApp(
-    @PrimaryKey
-    var packageName: String = System.currentTimeMillis().toString(),
+    var packageName: String? = null,
     var name: String,
     var cooldown: Int = 10,
-    var timeAllowed: Double = 1.0,
+    var timeAllowed: Double = 60.0,
     var timeUsed: Double = 0.0,
     var userId: String? = null,
     @DocumentId
     var id: String? = null,
 ) {
     constructor(): this(
-        packageName = "",
+        packageName = null,
         name = "",
         cooldown = 10,
         timeAllowed = 1.0,

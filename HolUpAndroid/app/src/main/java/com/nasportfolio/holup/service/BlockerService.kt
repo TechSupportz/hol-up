@@ -69,8 +69,12 @@ class BlockerService : Service() {
         })
         homeButtonWatcher.startWatch()
         scope.launch {
+            var blockedApps = dao.getAllBlockedApps().first()
             while (isActive) {
-                val blockedApps = dao.getAllBlockedApps().first()
+                if (toRefresh) {
+                    blockedApps = dao.getAllBlockedApps().first()
+                    toRefresh = false
+                }
                 getCurrentApp(blockedApps)
                 delay(interval)
             }
@@ -90,7 +94,7 @@ class BlockerService : Service() {
                 if (blockedApp.packageName != event.packageName) return@forEach
                 withContext(Dispatchers.Main) {
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                        window.show()
+                        window.show(blockedApp)
                         return@withContext
                     }
                     if (event.eventType == UsageEvents.Event.ACTIVITY_STOPPED) {
@@ -136,6 +140,10 @@ class BlockerService : Service() {
         job.cancel()
         window.onDestroy()
         homeButtonWatcher.stopWatch()
+    }
+
+    companion object {
+        var toRefresh = false
     }
 
 }
