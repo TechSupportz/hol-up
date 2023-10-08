@@ -53,15 +53,17 @@ const CooldownPage = () => {
                     {timeUsed} tries to view {hostName} today. Let's slow down a bit.
                 </div>
                 {countdown <= 0 ? (
-                    <div className="flex w-1/4 flex-col justify-center gap-4">
+                    <div className="flex w-1/4 flex-col items-center justify-center gap-4 text-center">
                         {timeUsed >= timeAllowed ? (
-                            <div className="text-2xl">
-                                You've reached your daily limit of {timeAllowed} minutes. Come back
-                                tomorrow!
+                            <>
+                                <div className="text-2xl">
+                                    You've reached your daily limit of {timeAllowed} minutes. Come
+                                    back tomorrow!
+                                </div>
                                 <Button onClick={handleProductiveClick}>
                                     Okay I'll go be productive
                                 </Button>
-                            </div>
+                            </>
                         ) : (
                             <>
                                 <Button variant="outline" onClick={handleProcrastinateClick}>
