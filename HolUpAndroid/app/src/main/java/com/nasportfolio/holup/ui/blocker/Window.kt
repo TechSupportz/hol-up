@@ -16,6 +16,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.nasportfolio.holup.data.models.BlockedApp
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -71,7 +72,7 @@ class Window @Inject constructor(
         this.listener = listener
     }
 
-    fun show() {
+    fun show(blockedApp: BlockedApp) {
         try {
             if (isShown) return
             view = view.apply {
@@ -82,7 +83,8 @@ class Window @Inject constructor(
                     WindowContent(
                         hide = {
                             listener?.hide()
-                        }
+                        },
+                        blockedApp = blockedApp
                     )
                 }
             }.also {
