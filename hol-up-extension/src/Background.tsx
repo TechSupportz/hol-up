@@ -7,12 +7,18 @@ const Background = () => {
     const [blockedApps, setBlockedApps] = useState<BlockedAppApiResponse[]>([])
 
     useEffect(() => {
+        const isProcrastinate = window.location.href.split("procrastinate=")[1] === "true"
+
+        // if (isProcrastinate) {
+        //     return
+        // }
+
         getBlockedApps()
     }, [])
 
     useEffect(() => {
         const hostname = window.location.hostname.split(".")[1]
-        const redirectUrl = window.location.href
+        const redirectUrl = `${window.location.href}#procrastinate=true`
 
         console.log(">>>", { hostname, redirectUrl, blockedApps })
 
@@ -29,7 +35,7 @@ const Background = () => {
 
     const getBlockedApps = async () => {
         // FIXME - get actual userId from local storage
-        const q = query(collection(db, "blockedApps"), where("userId", "==", "007"))
+        const q = query(collection(db, "blockedApps"), where("userId", "==", "008"))
         const querySnapshot = await getDocs(q)
 
         const blockedApps: BlockedAppApiResponse[] = []

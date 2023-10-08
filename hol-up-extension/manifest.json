@@ -6,7 +6,7 @@
     "content_scripts": [
         {
             "js": ["src/context.tsx"],
-            "matches": ["https://*/*", "http://*/*"]
+            "matches": ["https://*/*"]
         }
     ],
     "permissions": ["tabs"]
