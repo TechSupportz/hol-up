@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { collection, query, where, getDocs } from "firebase/firestore"
+import { collection, query, where, getDocs, updateDoc, getDoc, doc } from "firebase/firestore"
 import { db } from "./firebase"
 import { BlockedApp, BlockedAppApiResponse } from "./types/BlockedApp"
 
@@ -9,9 +9,9 @@ const Background = () => {
     useEffect(() => {
         const isProcrastinate = window.location.href.split("procrastinate=")[1] === "true"
 
-        // if (isProcrastinate) {
-        //     return
-        // }
+        if (isProcrastinate) {
+            return
+        }
 
         getBlockedApps()
     }, [])
@@ -29,9 +29,27 @@ const Background = () => {
 
             if (!blockedApp) return
 
-            window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}&docId=${blockedApp.docId}`
+            incrementTimesBlocked(blockedApp.docId)
+
+            window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}&docId=${
+                blockedApp.docId
+            }&timeUsed=${blockedApp.timeAllowed - (blockedApp.timeUsed + 1)}`
         }
     }, [blockedApps])
+
+    const incrementTimesBlocked = async (docId: string) => {
+        const blockedAppRef = doc(db, "blockedApps", docId)
+        const blockedAppDoc = await getDoc(blockedAppRef)
+
+        if (blockedAppDoc.exists()) {
+            const blockedApp = blockedAppDoc.data() as BlockedApp
+            const { timeUsed } = blockedApp
+
+            await updateDoc(blockedAppRef, {
+                timeUsed: timeUsed + 1,
+            })
+        }
+    }
 
     const getBlockedApps = async () => {
         // FIXME - get actual userId from local storage
