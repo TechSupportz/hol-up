@@ -15,3 +15,7 @@ export const BlockedAppSchema = z.object({
 })
 
 export type BlockedApp = z.infer<typeof BlockedAppSchema>
+
+export type BlockedAppApiResponse = BlockedApp & {
+    docId: string
+}

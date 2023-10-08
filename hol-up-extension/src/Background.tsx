@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
 import { collection, query, where, getDocs } from "firebase/firestore"
 import { db } from "./firebase"
-import { BlockedApp } from "./types/BlockedApp"
+import { BlockedApp, BlockedAppApiResponse } from "./types/BlockedApp"
 
 const Background = () => {
-    const [blockedApps, setBlockedApps] = useState<string[]>([])
+    const [blockedApps, setBlockedApps] = useState<BlockedAppApiResponse[]>([])
 
     useEffect(() => {
         getBlockedApps()
@@ -14,10 +14,16 @@ const Background = () => {
         const hostname = window.location.hostname.split(".")[1]
         const redirectUrl = window.location.href
 
-		console.log(">>>", {hostname, redirectUrl, blockedApps})
+        console.log(">>>", { hostname, redirectUrl, blockedApps })
 
-        if (blockedApps && blockedApps.includes(hostname)) {
-            window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}`
+        if (blockedApps) {
+            const blockedApp = blockedApps.find((app) =>
+                app.name.toLowerCase().includes(hostname.toLowerCase()),
+            )
+
+            if (!blockedApp) return
+
+            window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}&docId=${blockedApp.docId}`
         }
     }, [blockedApps])
 
@@ -26,12 +32,12 @@ const Background = () => {
         const q = query(collection(db, "blockedApps"), where("userId", "==", "007"))
         const querySnapshot = await getDocs(q)
 
-        const blockedApps: string[] = []
+        const blockedApps: BlockedAppApiResponse[] = []
 
         querySnapshot.forEach((doc) => {
-            const data = doc.data() as BlockedApp
-			console.log(">>>", data)
-            blockedApps.push(data.name.toLowerCase())
+            const data = doc.data() as BlockedAppApiResponse
+            console.log(">>>", data)
+            blockedApps.push({ ...data, docId: doc.id })
         })
 
         setBlockedApps(blockedApps)
