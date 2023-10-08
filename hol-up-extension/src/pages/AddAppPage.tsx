@@ -36,7 +36,7 @@ const AddAppPage = () => {
 
         try {
             await addDoc(collection(db, "blockedApps"), {
-                userId: "007",
+                userId: "008",
                 name: data.name,
                 cooldown: data.cooldown,
                 timeAllowed: data.timeAllowed,
