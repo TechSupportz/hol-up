@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table"
 import { db } from "@/firebase"
 import { BlockedAppApiResponse } from "@/types/BlockedApp"
-import { collection, getDocs, query, where } from "firebase/firestore"
+import { collection, deleteDoc, getDocs, query, where } from "firebase/firestore"
 import { useEffect, useState } from "react"
 import { AiFillDelete } from "react-icons/ai"
 
@@ -18,35 +18,50 @@ export function PopUpPage() {
     useEffect(() => {
         getBlockedApps()
     }, [])
-    const [HolUp, setHolUp] = useState<BlockedAppApiResponse[]>([])
 
+    const [HolUp, setHolUp] = useState<BlockedAppApiResponse[]>([])
     const [filterText, setFilterText] = useState<string>("")
 
-    // Function to handle text input change
     const handleFilterTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterText(event.target.value)
     }
 
-    // Filter items based on the typed text
     const filteredItems = HolUp.filter((item) =>
         item.name.toLowerCase().includes(filterText.toLowerCase()),
     )
 
     const getBlockedApps = async () => {
-        // FIXME - get actual userId from local storage
-        const q = query(collection(db, "blockedApps"), where("userId", "==", "007"))
+        const q = query(collection(db, "blockedApps"), where("userId", "==", "010"))
         const querySnapshot = await getDocs(q)
 
         const blockedApps: BlockedAppApiResponse[] = []
 
         querySnapshot.forEach((doc) => {
             const data = doc.data() as BlockedAppApiResponse
-            console.log(">>>", data)
             blockedApps.push({ ...data, docId: doc.id })
         })
 
         setHolUp(blockedApps)
-        console.log(blockedApps)
+    }
+
+    const deleteUser = async (userId: string, name: string) => {
+        try {
+            const q = query(
+                collection(db, "blockedApps"),
+                where("userId", "==", userId),
+                where("name", "==", name),
+            )
+            const querySnapshot = await getDocs(q)
+
+            querySnapshot.forEach(async (doc) => {
+                await deleteDoc(doc.ref)
+            })
+
+            // After deletion, re-fetch the data
+            getBlockedApps()
+        } catch (error) {
+            console.error("Error deleting document:", error)
+        }
     }
 
     return (
@@ -74,14 +89,15 @@ export function PopUpPage() {
                                 <TableCell className="font-medium">
                                     <img
                                         className="h-8 w-8"
-                                        src={`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.${name.name}.com/&size=256`}></img>
+                                        src={`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.${name.name}.com/&size=256`}
+                                        alt={`Logo for ${name.name}`}
+                                    />
                                 </TableCell>
                                 <TableCell>{name.name}</TableCell>
                                 <TableCell>{name.cooldown} seconds</TableCell>
                                 <TableCell
                                     className="text-center"
-                                    // onClick={openScreen}
-                                >
+                                    onClick={() => deleteUser(name.userId, name.name)}>
                                     <AiFillDelete className="m-auto" size={25} />
                                 </TableCell>
                             </TableRow>
