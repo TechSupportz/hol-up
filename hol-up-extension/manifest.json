@@ -8,5 +8,6 @@
             "js": ["src/context.tsx"],
             "matches": ["https://*/*", "http://*/*"]
         }
-    ]
+    ],
+    "permissions": ["tabs"]
 }

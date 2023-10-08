@@ -2,16 +2,27 @@ package com.nasportfolio.holup.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
+import com.google.firebase.firestore.DocumentId
 
 @Entity
 data class BlockedApp(
     @PrimaryKey
-    val packageName: String,
-    val name: String,
-    val coolDown: Int = 10,
-    val timeAllowed: Double = 1.0,
-    val timeUsed: Double = 0.0,
-    val startAccumulatingTime: Boolean = false,
-    val lastUpdated: Long = Date().time
-)
+    var packageName: String = System.currentTimeMillis().toString(),
+    var name: String,
+    var cooldown: Int = 10,
+    var timeAllowed: Double = 1.0,
+    var timeUsed: Double = 0.0,
+    var userId: String? = null,
+    @DocumentId
+    var id: String? = null,
+) {
+    constructor(): this(
+        packageName = "",
+        name = "",
+        cooldown = 10,
+        timeAllowed = 1.0,
+        timeUsed = 0.0,
+        userId = null,
+        id = null,
+    )
+}
