@@ -29,26 +29,22 @@ const Background = () => {
 
             if (!blockedApp) return
 
-            incrementTimesBlocked(blockedApp.docId)
-
-            window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}&docId=${
-                blockedApp.docId
-            }&timeUsed=${blockedApp.timeAllowed - (blockedApp.timeUsed + 1)}`
+            incrementTimesBlocked(blockedApp).then(() => {
+                window.location.href = `http://localhost:3000/#/cooldown?hostname=${hostname}&redirectUrl=${redirectUrl}&docId=${
+                    blockedApp.docId
+                }&timeUsed=${blockedApp.timeUsed + 1}&timeAllowed=${blockedApp.timeAllowed}`
+            })
         }
     }, [blockedApps])
 
-    const incrementTimesBlocked = async (docId: string) => {
-        const blockedAppRef = doc(db, "blockedApps", docId)
-        const blockedAppDoc = await getDoc(blockedAppRef)
+    const incrementTimesBlocked = async (app: BlockedAppApiResponse) => {
+        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>", app)
 
-        if (blockedAppDoc.exists()) {
-            const blockedApp = blockedAppDoc.data() as BlockedApp
-            const { timeUsed } = blockedApp
+        const blockedAppRef = doc(db, "blockedApps", app.docId)
 
-            await updateDoc(blockedAppRef, {
-                timeUsed: timeUsed + 1,
-            })
-        }
+        await updateDoc(blockedAppRef, {
+            timeUsed: app.timeUsed + 1,
+        })
     }
 
     const getBlockedApps = async () => {
